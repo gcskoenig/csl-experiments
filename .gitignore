@@ -127,3 +127,11 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# experiments
+results/
+data/
+bnlearn/results/
+.idea/
+.DS_Store
+.Rhistory
