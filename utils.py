@@ -26,7 +26,6 @@ def powerset(items):
     return combo
 
 
-# function for all d separations wrt target:
 def d_separation(g, y, g2=None, mc=None, random_state=None):
     """Test d-separation of each single node and y given every possible conditioning set in graph g
 
@@ -38,9 +37,10 @@ def d_separation(g, y, g2=None, mc=None, random_state=None):
         random_state : seed for random and np.random when mc is not None
 
     Returns:
-         pandas dataframe of Boolean values for d-separation for every node except y (if mc is None)
-         boolean array of d-separation, it cannot be traced back which d-separations were tested explicitly
-         (if mc is not None)
+        if mc is None:
+         pandas.DataFrame of Bools for d-separation for every node except y
+        if mc is not None:
+         Array of Bools for d-separation; it cannot be traced back which d-separations were tested explicitly
     """
     # list of nodes (strings)
     predictors = list(g.nodes)
@@ -50,7 +50,6 @@ def d_separation(g, y, g2=None, mc=None, random_state=None):
     predictors.remove(y)
     n = len(predictors)
 
-    # TODO remove everything that is 'too large'
     # number of possible d-separations between one feature and target, i.e. number of potential conditioning sets
     if mc is None:
         # number of potential d-separations per node
@@ -142,7 +141,7 @@ def d_separation(g, y, g2=None, mc=None, random_state=None):
                                 g, {node}, {y}, cond_set
                             )
                             j += 1
-        return d_separations    # df with d-separation Booleans for every predictor
+        return d_separations    # df with Boolean indicators of d-separation for every predictor
 
 
 # compute the number of d-separation statements from n
@@ -229,7 +228,6 @@ def create_amat(n, p):
     # create df for amat
     amat = pd.DataFrame(columns=variables, index=variables)
 
-    # TODO avoid double loop (use zip)
     for j in range(n):
         for k in range(n):
             amat.iloc[j, k] = bernoulli(p)

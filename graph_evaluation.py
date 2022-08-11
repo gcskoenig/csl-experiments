@@ -4,6 +4,7 @@ d-separations by comparison to ground truth graph using exact and approx compari
 import networkx as nx
 import pandas as pd
 from utils import exact, approx, convert_amat, create_folder
+import pickle
 
 # file for comparison   # TODO (cl) More elegant way than try-except-statement?
 try:
@@ -15,21 +16,16 @@ except:
     graph_evaluation = pd.DataFrame(columns=col_names)
 
 # to access the target nodes in graph loop
-# TODO: adept targets after they have been drawn in experiment file and adapt to new graphs
-# TODO create a target dict like this in SAGE file for continuous data
-targets = {"alarm": "PULMEMBOLUS", "asia": "dysp", "hepar": "RHepatitis", "sachs": "Erk",
-           "dag_s_0.22222": "1",  "dag_s_0.33333": "1", "dag_s_0.44444": "1", "dag_s_0.55556": "1",
-           "dag_s_0.66667": "1"}
+with open('data/temp/targets.pkl', 'rb') as f:
+    targets = pickle.load(f)
 
 # adapt for final experiments
 discrete_graphs = ["asia", "sachs", "alarm", "hepar"]
 # cont_graphs = ["dag_s", "dag_sm", "dag_m", "dag_l"]
 cont_graphs = ["dag_s_0.22222", "dag_s_0.33333", "dag_s_0.44444", "dag_s_0.55556", "dag_s_0.66667"]
 sample_sizes = ["10", "100", "1000"]
-# discrete_algs = ["hc", "tabu", "mmhc", "h2pc"]
 discrete_algs = ["tabu"]
 cont_algs = ["tabu"]
-
 
 # compare graphs with less than 1M d-separations by evaluating exact inference
 for graph in discrete_graphs:
@@ -46,7 +42,7 @@ for graph in discrete_graphs:
                 tp, tn, fp, fn, d_separated_total, d_connected_total = exact(g_true, g_est, targets[f"{graph}"])
                 mc = "n/a"
             elif graph in ["alarm", "hepar"]:
-                mc = 1000000
+                mc = 1000
                 tp, tn, fp, fn, d_separated_total, d_connected_total = approx(g_true, g_est, targets[f"{graph}"],
                                                                               mc=mc, rand_state=42)
             else:
