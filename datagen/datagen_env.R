@@ -7,7 +7,7 @@ args = commandArgs(trailingOnly=TRUE)
 # setwd("~/csl-experiments")
 
 # create folders to store adjacency matrices, folder data supposed to exist
-# dir.create("data")
+dir.create("data")
 dir.create("data/true_amat")
 
 # install package if necessary
