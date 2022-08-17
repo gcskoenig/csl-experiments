@@ -6,6 +6,7 @@ import pandas as pd
 from utils import create_folder
 import os
 import pickle
+from utils import convert_amat
 
 # set random seed
 random.seed(1902)
@@ -26,7 +27,6 @@ def main():
             datasets.append(files[:len(files)-4])
         else:
             continue
-
     # sample targets and append dictionary
     for data in datasets:
         if data in ["asia", "hepar"]:
@@ -34,10 +34,19 @@ def main():
         else:
             df = pd.read_csv(f"data/{data}.csv")
             col_names = df.columns
-            target = random.choice(col_names)
+            # check if degree of target node > 0 (if not, resample target)
+            amat = pd.read_csv(f"data/true_amat/{data}.csv")
+            if data in ["alarm", "sachs"]:
+                amat = convert_amat(amat)
+            else:
+                amat = convert_amat(amat, col_names=True)
+            degree = 0
+            while degree < 1:
+                target = random.choice(col_names)
+                degree = amat[target].sum() + amat.loc[target, :].sum()
+                print("degree of", {data}, degree)
             target_dict[data] = target
             target_df[data] = [target]
-
     create_folder("data/temp/")
     # save dictionary
     with open('data/temp/targets.pkl', 'wb') as f:

@@ -1,7 +1,10 @@
+#!/usr/bin/env Rscript
+args = commandArgs(trailingOnly=TRUE)
+
 # Generating conditionally linear Gaussian graphs and sampling synthetic data in accordance to them
 
 # project folder, this file is supposed to be in first level of project folder
-setwd("~/Desktop/csl-experiments/")
+# setwd("~/Desktop/csl-experiments/")
 
 # create folders to store results about DGPs and adjacency matrices
 dir.create("data")
@@ -34,7 +37,7 @@ prob_v <- c(6/10, 6/20, 6/50, 6/100)
 size_tokens <- c("s", "sm", "m", "l")
 
 # sample size of sampled data sets
-n <- 1000
+n <- strtoi(args[1])
 
 
 for (i in c(1:4)){
