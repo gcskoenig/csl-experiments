@@ -1,54 +1,54 @@
-# TODO Is there a nicer way for the experiment file than the command line arguments
 """
-Experiment file for csl sage with mixed (cont/discrete) DAGs
-
-Compute SAGE and store
+SAGE Evaluation for mixed data and discrete target for experiments in 'Causal Structure Learning for Efficient SAGE
+Estimation'
 
 Command line args:
-    --data CSV file in folder ~/data/ (string without suffix)
+    --data csv-file in folder ~/data/ (string without suffix)
     --model choice between linear model ('lm') and random forest regression ('rf')
     --size slice dataset to df[0:size] (int)
     --runs nr_runs in explainer.sage()
     --orderings nr_orderings in explainer.sage()
     --thresh threshold for convergence detection
-
 """
 
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
-from rfi.explainers.explainer import Explainer
-from rfi.samplers import SequentialSampler, GaussianSampler, UnivRFSampler  # TODO (cl) review pr for sampler
+from rfi.src.rfi.explainers.explainer import Explainer
+from rfi.samplers.ensemble import UnivRFSampler
+from rfi.samplers.gaussian import GaussianSampler
+from rfi.samplers.sequential import SequentialSampler
+from rfi.decorrelators.naive import NaiveDecorrelator
 from rfi.decorrelators.gaussian import NaiveGaussianDecorrelator
 import time
 import argparse
+from utils import create_folder
+import pickle
 
-
-parser = argparse.ArgumentParser(
-    description="One SAGE Evaluation")
+parser = argparse.ArgumentParser(description="Complete file for model fitting and SAGE estimation")
 
 parser.add_argument(
     "-d",
     "--data",
     type=str,
-    default="dag_s",
-    help="Dataset from ~/data/ folder; string with suffix; default: 'dag_s.csv'")
+    help="Dataset from ~/data/ folder; string w/o suffix")
 
 parser.add_argument(
     "-m",
     "--model",
     type=str,
-    default="rf",
-    help="So far only random forest classifier ('rf') implemented; default: 'rf'")
+    default="mnb",
+    help="Multinomial naive Bayes ('mnb') or random forest classifier ('rf'); default: 'mnb'")
 
 parser.add_argument(
     "-n",
     "--size",
     type=int,
-    default=None,
-    help="Custom sample size to slice df, default: None",   # TODO (cl) slice or random draw?
+    default=20000,
+    help="Custom sample size to slice df to, default: 20000",
 )
 
 parser.add_argument(
@@ -63,16 +63,16 @@ parser.add_argument(
     "-o",
     "--orderings",
     type=int,
-    default=20,
-    help="Number of orderings; default : 20",
+    default=10000,
+    help="Number of orderings in SAGE algorithm; default : 10000",
 )
 
 parser.add_argument(
     "-t",
     "--thresh",
     type=float,
-    default=0.025,
-    help="Threshold for convergence detection; default: 0.025",     # TODO (cl) rewrite convergence detection file
+    default=0.01,
+    help="Threshold for convergence detection; default: 0.01",
 )
 
 parser.add_argument(
@@ -85,39 +85,51 @@ parser.add_argument(
 
 parser.add_argument(
     "-rs",
-    "--randomseed",
+    "--seed",
     type=int,
     default=1902,
     help="Numpy random seed; default: 1902",
 )
 
+parser.add_argument(
+    "-e",
+    "--extra",
+    type=int,
+    default=100,
+    help="Extra orderings after convergence has been detected, if detection on; default: 100",
+)
+
 arguments = parser.parse_args()
 
 # seed
-np.random.seed(arguments.randomseed)
+np.random.seed(arguments.seed)
 
 
 def main(args):
-    # TODO (cl) create directory here
-    savepath = f"scripts/csl-experiments/results/continuous/{args.data}"
+    # create results folder
+    create_folder("results/")
+    create_folder(f"results/{args.data}")
+    savepath = f"results/{args.data}"
 
     # df to store some metadata TODO (cl) do we need to store any other data?
-    col_names_meta = ["data", "model", "runtime"]
+    col_names_meta = ["data", "model", "runtime", "sample size"]
     metadata = pd.DataFrame(columns=col_names_meta)
 
-    # import and prepare data TODO (cl) or provide full path as command line argument?
-    df = pd.read_csv(f"scripts/csl-experiments/data/{args.data}.csv")
+    # import and prepare data
+    df = pd.read_csv(f"data/{args.data}.csv")
     if args.size is not None:
         df = df[0:args.size]
-    col_names = df.columns.tolist()
-    target = np.random.choice(col_names)    # TODO (cl) can classifier handle either data class (cont/discrete)?
+    col_names = df.columns.to_list()
+    with open('data/temp/targets.pkl', 'rb') as f:
+        target_dict = pickle.load(f)
+    target = target_dict[args.data]
     col_names.remove(target)
     X = df[col_names]
     y = df[target]
 
     # split data for train and test purpose
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=args.split, random_state=args.randomseed
+        X, y, test_size=args.split, random_state=args.seed
     )
 
     # capture model performance
@@ -125,37 +137,45 @@ def main(args):
     model_details = pd.DataFrame(columns=col_names_model)
 
     # fit model
-    model = RandomForestClassifier(n_estimators=100)     # TODO (cl) command line argument?
+    if args.model == "mnb":
+        # fit model
+        model = MultinomialNB()
+    if args.model == "rf":
+        # fit model
+        model = RandomForestClassifier(n_estimators=100)
+
     model.fit(X_train, y_train)
     # model evaluation
     y_pred = model.predict(X_test)
     acc = accuracy_score(y_test, y_pred)
     # fill df with info about model
-    model_details.loc[len(model_details)] = [args.data, "rf classifier", target, acc]
+    model_details.loc[len(model_details)] = [args.data, args.model, target, acc]
     model_details.to_csv(
-        f"{savepath}/model_details_rf.csv", index=False
+        f"{savepath}/model_details_{args.data}_{args.model}.csv", index=False
     )
 
     # model prediction linear model
     def model_predict(x):
         return model.predict(x)
 
-    # set up sampler and decorrelator TODO (cl) let sampler know what rows are cat and cont
-    cat = []
-    cont = []
-    sampler_cat = UnivRFSampler(X_train[cat])
-    sampler_cont = GaussianSampler(X_train[cont])
-    # TODO (cl) do I have to provide adjacency matrix? If yes, infer graph first before executing script
-    # TODO (cl) provide column names of categorical data
-    sampler = SequentialSampler(X_train, adj_mix, cat, cont_sampler=sampler_cont,
-                                    cat_sampler=sampler_cat)
-    # TODO (cl) what decorrelator to use?
-    decorrelator = NaiveGaussianDecorrelator(X_train)
+    # list of cat and cont variables
+    with open('data/temp/mixed_dict.pkl', 'rb') as f:
+        mixed_dict = pickle.load(f)
+
+    cat = mixed_dict[f"{args.data}_cat"]
+    cont = mixed_dict[f"{args.data}_cont"]
+
+    # set up sampler and decorrelator
+    sampler_cat = UnivRFSampler(X_train)
+    sampler_cont = GaussianSampler(X_train)
+    sampler = SequentialSampler(X_train, cat, cont_sampler=sampler_cont, cat_sampler=sampler_cat)
+
+    decorrelator = NaiveDecorrelator(X_train, sampler)  # TODO: Which decorrelator to use?
 
     # features of interest
     fsoi = X_train.columns
 
-    # SAGE explainer    # TODO What loss function?
+    # SAGE explainer
     wrk = Explainer(model_predict, fsoi, X_train, loss=accuracy_score, sampler=sampler,
                     decorrelator=decorrelator)
 
@@ -165,7 +185,8 @@ def main(args):
     # track time with time module
     start_time = time.time()
     ex_d_sage, orderings_sage = wrk.sage(X_test, y_test, partial_order, nr_orderings=args.orderings,
-                                         nr_runs=args.runs, detect_convergence=False, thresh=args.thresh)
+                                         nr_runs=args.runs, detect_convergence=True, thresh=args.thresh,
+                                         extra_orderings=args.extra)
     time_sage = time.time() - start_time
 
     # save  orderings
@@ -181,7 +202,7 @@ def main(args):
     # fi_mean values across runs + stds
     ex_d_sage.fi_means_stds().to_csv(f"{savepath}/sage_{args.data}_{args.model}.csv")
 
-    content = [args.data, args.model, time_sage]
+    content = [args.data, args.model, time_sage, args.size]
     # fill evaluation table with current run
     metadata.loc[len(metadata)] = content
     metadata.to_csv(f"{savepath}/metadata_{args.data}_{args.model}.csv", index=False)

@@ -16,7 +16,9 @@ library('bnlearn')
 # set seed
 set.seed(1902)
 
-names <- c("alarm", "asia", "hepar", "sachs")
+names <- c("alarm", "asia", "sachs", "hepar")
+
+# names <- c("alarm", "asia", "hepar", "sachs")
 
 for (i in names){
   

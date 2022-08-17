@@ -24,11 +24,11 @@ set.seed(44)
 size <- c(10, 20, 50, 100)
 
 # probabilities for each pair of nodes to share an edge
-prob_i <- c(2/9, 2/19, 2/49, 2/99)
-prob_ii <- c(3/9, 3/19, 3/49, 3/99)
-prob_iii <- c(4/9, 4/19, 4/49, 4/99)
-prob_iv <- c(5/9, 5/19, 5/49, 5/99)
-prob_v <- c(6/9, 6/19, 6/49, 6/99)
+prob_i <- c(2/10, 2/20, 2/50, 2/100)
+prob_ii <- c(3/10, 3/20, 3/50, 3/100)
+prob_iii <- c(4/10, 4/20, 4/50, 4/100)
+prob_iv <- c(5/10, 5/20, 5/50, 5/100)
+prob_v <- c(6/10, 6/20, 6/50, 6/100)
 
 # names of graphs (add prob to graph name)
 size_tokens <- c("s", "sm", "m", "l")

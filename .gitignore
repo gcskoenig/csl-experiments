@@ -135,3 +135,7 @@ bnlearn/results/
 .idea/
 .DS_Store
 .Rhistory
+bnlearn/.Rhistory
+bnlearn/.RData
+
+function_eval.py
