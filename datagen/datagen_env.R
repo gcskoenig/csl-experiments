@@ -1,7 +1,10 @@
+#!/usr/bin/env Rscript
+args = commandArgs(trailingOnly=TRUE)
+
 # data generation from bn object as from .rda files (cf. https://www.bnlearn.com/bnrepository/)
 
-# project folder, this file is supposed to be in first level of sub-folder 
-setwd("~/Desktop/csl-experiments/")
+# project folder, this file is supposed to be in first level of sub-folder # how?
+# setwd("~/csl-experiments")
 
 # create folders to store adjacency matrices, folder data supposed to exist
 # dir.create("data")
@@ -25,7 +28,7 @@ for (i in names){
   env_name <- paste("datagen/envs/", i, ".rda", sep="")
   load(env_name)
 
-  data <- rbn(bn, n=1000)
+  data <- rbn(bn, n=strtoi(args[1]))
   
   filename <- paste("data/", i, ".csv", sep="")
 
