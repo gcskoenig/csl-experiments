@@ -39,7 +39,7 @@ for (i in c(1:4)){
     
     # randomly generate DAG
     graph <- r.gauss.pardag(d, prob=degree/d, top.sort = FALSE, normalize = TRUE,
-                            lbe = 0.1, ube = 1, neg.coef = TRUE, labels = as.character(1:d),
+                            lbe = 0.5, ube = 2, neg.coef = TRUE, labels = as.character(1:d),
                             lbv = 0.5, ubv = 1)
     
     # retrieve and store info about DGP (weight matrix and error variance)
