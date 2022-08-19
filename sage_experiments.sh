@@ -1,8 +1,6 @@
 #!/bin/bash
 
-Rscript datagen/datagen_env.R 1000000
-
-Rscript datagen/datagen_pcalg.R 1000000
+Rscript datagen/datagen_pcalg.R 1000000 2
 
 python sample_targets.py
 
