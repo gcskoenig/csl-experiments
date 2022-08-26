@@ -179,7 +179,11 @@ def main(args):
     # save  orderings
     orderings_sage.to_csv(f'{savepath}/order_sage_{args.data}_{args.model}.csv')
 
-    # save SAGE values for every ordering (Note: not split by runs anymore)
+    # save SAGE values for every ordering split by runs
+    sage_values_scores = ex_d_sage.scores
+    sage_values_scores.to_csv(f"{savepath}/sage_scores_{args.data}_{args.model}.csv")
+
+    # save SAGE values for every ordering not split by runs
     sage_values_ordering = ex_d_sage.scores.mean(level=0)
     sage_values_ordering.to_csv(f"{savepath}/sage_o_{args.data}_{args.model}.csv")
 
