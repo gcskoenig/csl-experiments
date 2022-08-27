@@ -43,7 +43,7 @@ parser.add_argument(
     "-n",
     "--size",
     type=int,
-    default=20000,
+    default=10000,
     help="Custom sample size to slice df to, default: 20000",
 )
 
