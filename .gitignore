@@ -139,3 +139,5 @@ bnlearn/.Rhistory
 bnlearn/.RData
 
 function_eval.py
+src/
+requirements_rev.txt
