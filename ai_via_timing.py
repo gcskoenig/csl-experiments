@@ -201,7 +201,7 @@ def main(args):
             break
 
     times = [time_dsep_test_pos, time_dsep_test_neg, time_ai_via_pos, time_ai_via_neg]
-    metadata[0] = times
+    metadata.loc[0] = times
     metadata.to_csv(f"{savepath}/ai_via_{args.data}_{args.model}.csv", index=False)
 
 
