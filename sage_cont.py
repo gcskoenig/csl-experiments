@@ -88,12 +88,37 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "-sas",
+    "--sage_seed",
+    type=int,
+    default=None,
+    help="Numpy random seed; default: 1902",
+)
+
+parser.add_argument(
     "-e",
     "--extra",
     type=int,
     default=100,
     help="Extra orderings after convergence has been detected, if detection on; default: 100",
 )
+
+parser.add_argument(
+    "-te",
+    "--test",
+    type=bool,
+    default=False,
+    help="test results",
+)
+
+parser.add_argument(
+    "-run",
+    "--run",
+    type=int,
+    default=None,
+    help="test results",
+)
+
 
 arguments = parser.parse_args()
 
@@ -105,7 +130,11 @@ def main(args):
     # create results folder
     create_folder("results/")
     create_folder(f"results/{args.data}")
-    savepath = f"results/{args.data}"
+    if args.test:
+        create_folder(f"results/{args.data}/test/")
+        savepath = f"results/{args.data}/test"
+    else:
+        savepath = f"results/{args.data}"
 
     # df to store some metadata TODO (cl) do we need to store any other data?
     col_names_meta = ["data", "model", "runtime", "sample size"]
@@ -147,9 +176,14 @@ def main(args):
     r2 = r2_score(y_test, y_pred)
     # fill df with info about model
     model_details.loc[len(model_details)] = [args.data, args.model, target, mse, r2]
-    model_details.to_csv(
-        f"{savepath}/model_details_{args.data}_{args.model}.csv", index=False
-    )
+    if args.test:
+        model_details.to_csv(
+            f"{savepath}/model_details_{args.data}_{args.model}_{args.run}.csv", index=False
+        )
+    else:
+        model_details.to_csv(
+            f"{savepath}/model_details_{args.data}_{args.model}.csv", index=False
+        )
 
     # model prediction linear model
     def model_predict(x):
@@ -169,6 +203,8 @@ def main(args):
     # NO partial order
     partial_order = [tuple(X_train.columns)]
 
+    np.random.seed(arguments.sage_seed)
+
     # track time with time module
     start_time = time.time()
     ex_d_sage, orderings_sage = wrk.sage(X_test, y_test, partial_order, nr_orderings=args.orderings,
@@ -176,27 +212,53 @@ def main(args):
                                          extra_orderings=args.extra)
     time_sage = time.time() - start_time
 
-    # save  orderings
-    orderings_sage.to_csv(f'{savepath}/order_sage_{args.data}_{args.model}.csv')
+    if args.test:
 
-    # save SAGE values for every ordering split by runs
-    sage_values_scores = ex_d_sage.scores
-    sage_values_scores.to_csv(f"{savepath}/sage_scores_{args.data}_{args.model}.csv")
+        # save  orderings
+        orderings_sage.to_csv(f'{savepath}/order_sage_{args.data}_{args.model}_{args.run}.csv')
 
-    # save SAGE values for every ordering not split by runs
-    sage_values_ordering = ex_d_sage.scores.mean(level=0)
-    sage_values_ordering.to_csv(f"{savepath}/sage_o_{args.data}_{args.model}.csv")
+        # save SAGE values for every ordering split by runs
+        sage_values_scores = ex_d_sage.scores
+        sage_values_scores.to_csv(f"{savepath}/sage_scores_{args.data}_{args.model}_{args.run}.csv")
 
-    # fi_values for the runs
-    ex_d_sage.fi_vals().to_csv(f"{savepath}/sage_r_{args.data}_{args.model}.csv")
+        # save SAGE values for every ordering not split by runs
+        sage_values_ordering = ex_d_sage.scores.mean(level=0)
+        sage_values_ordering.to_csv(f"{savepath}/sage_o_{args.data}_{args.model}_{args.run}.csv")
 
-    # fi_mean values across runs + stds
-    ex_d_sage.fi_means_stds().to_csv(f"{savepath}/sage_{args.data}_{args.model}.csv")
+        # fi_values for the runs
+        ex_d_sage.fi_vals().to_csv(f"{savepath}/sage_r_{args.data}_{args.model}_{args.run}.csv")
 
-    content = [args.data, args.model, time_sage, args.size]
-    # fill evaluation table with current run
-    metadata.loc[len(metadata)] = content
-    metadata.to_csv(f"{savepath}/metadata_{args.data}_{args.model}.csv", index=False)
+        # fi_mean values across runs + stds
+        ex_d_sage.fi_means_stds().to_csv(f"{savepath}/sage_{args.data}_{args.model}_{args.run}.csv")
+
+        content = [args.data, args.model, time_sage, args.size]
+        # fill evaluation table with current run
+        metadata.loc[len(metadata)] = content
+        metadata.to_csv(f"{savepath}/metadata_{args.data}_{args.model}_{args.run}.csv", index=False)
+
+    else:
+
+        # save  orderings
+        orderings_sage.to_csv(f'{savepath}/order_sage_{args.data}_{args.model}.csv')
+
+        # save SAGE values for every ordering split by runs
+        sage_values_scores = ex_d_sage.scores
+        sage_values_scores.to_csv(f"{savepath}/sage_scores_{args.data}_{args.model}.csv")
+
+        # save SAGE values for every ordering not split by runs
+        sage_values_ordering = ex_d_sage.scores.mean(level=0)
+        sage_values_ordering.to_csv(f"{savepath}/sage_o_{args.data}_{args.model}.csv")
+
+        # fi_values for the runs
+        ex_d_sage.fi_vals().to_csv(f"{savepath}/sage_r_{args.data}_{args.model}.csv")
+
+        # fi_mean values across runs + stds
+        ex_d_sage.fi_means_stds().to_csv(f"{savepath}/sage_{args.data}_{args.model}.csv")
+
+        content = [args.data, args.model, time_sage, args.size]
+        # fill evaluation table with current run
+        metadata.loc[len(metadata)] = content
+        metadata.to_csv(f"{savepath}/metadata_{args.data}_{args.model}.csv", index=False)
 
 
 if __name__ == "__main__":

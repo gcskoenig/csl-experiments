@@ -2,10 +2,8 @@
 
 import pandas as pd
 import networkx as nx
-import matplotlib.pyplot as plt
-import numpy as np
-from scipy.stats import norm
 import argparse
+from utils import convert_amat, create_folder
 
 
 parser = argparse.ArgumentParser(description="Complete file for model fitting and SAGE estimation")
@@ -31,19 +29,10 @@ def main(args):
     values = pd.read_csv(f"results/{args.data}/sage_o_{args.data}_{args.model}.csv")
     if 'ordering' in values.columns:
         values = values.drop(['ordering'], axis=1)
-    adj_mat = pd.read_csv("scripts/csl-experiments/data/true_amat/dag_s_0.22222.csv")
+    adj_mat = pd.read_csv(f"scripts/csl-experiments/data/true_amat/{args.data}.csv")
 
-    # dag_s amat to zeros and ones
-    col_names_str = []
-    for k in range(len(adj_mat.columns)):
-        col_names_str.append(str(k+1))
-    adj_mat.columns = col_names_str
-    mapping_rf = {False: 0, True: 1}
-    col_names = adj_mat.columns
-    for j in col_names:
-        adj_mat[j] = adj_mat.replace({j: mapping_rf})[j]
     # modify adjacency matrix for use in networkx package
-    adj_mat = adj_mat.set_axis(col_names, axis=0)
+    adj_mat = convert_amat(adj_mat)
 
     target = "10"
 
@@ -55,8 +44,6 @@ def main(args):
     diffs = []
 
     for i in range(len(orderings)):
-        # TODO if it is the first ordering to go through, set value to zero if dsep found, else set value to value
-        # from ordering before, also safe the difference b/w current value and value from ordering before
         # make 'ordering string' a list of numerics
         ordering = orderings["ordering"][i]     # this is a string
         ordering = filter(str.isdigit, ordering)
@@ -100,8 +87,8 @@ def main(args):
 
     # TODO plot the differences between you know what
 
-    values.to_csv("scripts/csl-experiments/new_results/results/continuous/dag_s/csl_sage_o_dag_s_0.22222_lm.csv")
+    values.to_csv(f"results/{args.data}/csl_sage_o_{args.data}_{args.model}.csv")
 
 
 if __name__ == "__main__":
-    main()
+    main(arguments)

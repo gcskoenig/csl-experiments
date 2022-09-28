@@ -1,5 +1,5 @@
 # Bayesian network structure learning using tabu algorithm (as implemented in bnlearn)
-setwd("~/Desktop/csl-experiments")
+# setwd("~/Desktop/csl-experiments")
 # directory bnlearn supposed to exist
 # dir.create("bnlearn")
 dir.create("bnlearn/results")
@@ -13,7 +13,7 @@ set.seed(1902)
 
 # to loop through different data sets
 graphs_discrete <- c("alarm", "asia", "hepar", "sachs")
-sample_sizes <- c(10, 100, 1000)
+sample_sizes <- c(1000, 10000, 100000, 1000000)
 
 # initiate data frame to store metadata like runtime
 table <- data.frame(matrix(ncol = 4, nrow = 0))

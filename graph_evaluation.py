@@ -8,7 +8,7 @@ import pickle
 
 # file for comparison   # TODO (cl) More elegant way than try-except-statement?
 try:
-    graph_evaluation = pd.read_csv("results/graph_evaluation.csv")
+    graph_evaluation = pd.read_csv("bnlearn/results/graph_evaluation.csv")
 except:
     col_names = ["Graph", "Target", "Method", "MC",
                  "True total", "False total", "D-sep share", "TP", "TN", "FP", "FN", "TP rate",
@@ -21,14 +21,17 @@ with open('data/temp/targets.pkl', 'rb') as f:
 
 # adapt for final experiments
 discrete_graphs = ["asia", "sachs", "alarm", "hepar"]
-# cont_graphs = ["dag_s", "dag_sm", "dag_m", "dag_l"]
-cont_graphs = ["dag_s_0.22222", "dag_s_0.33333", "dag_s_0.44444", "dag_s_0.55556", "dag_s_0.66667"]
-sample_sizes = ["10", "100", "1000"]
-discrete_algs = ["tabu"]
-cont_algs = ["tabu"]
+
+cont_graphs = ["dag_s_0.2", "dag_s_0.3", "dag_s_0.4", "dag_sm_0.1", "dag_sm_0.15", "dag_sm_0.2",
+               "dag_m_0.04", "dag_m_0.06", "dag_m_0.08", "dag_l_0.02", "dag_l_0.03", "dag_l_0.04"]
+
+sample_sizes = ["1000", "10000", "1e+05", "1e+06"]
+discrete_algs = ["h2pc", "mmhc", "hc", "tabu"]
+cont_algs = ["hc", "tabu"]
 
 # compare graphs with less than 1M d-separations by evaluating exact inference
 for graph in discrete_graphs:
+    print(graph)
     # ground truth graph
     true_amat = pd.read_csv(f"data/true_amat/{graph}.csv")
     true_amat = convert_amat(true_amat)
@@ -42,11 +45,12 @@ for graph in discrete_graphs:
                 tp, tn, fp, fn, d_separated_total, d_connected_total = exact(g_true, g_est, targets[f"{graph}"])
                 mc = "n/a"
             elif graph in ["alarm", "hepar"]:
-                mc = 1000
+                mc = 1000000
                 tp, tn, fp, fn, d_separated_total, d_connected_total = approx(g_true, g_est, targets[f"{graph}"],
                                                                               mc=mc, rand_state=42)
             else:
                 print("graph is not defined properly")
+                print(true_amat)
                 break
 
             dsep_share = d_separated_total / (d_separated_total + d_connected_total)
@@ -71,6 +75,7 @@ for graph in discrete_graphs:
             graph_evaluation.loc[len(graph_evaluation)] = content
 
 for graph in cont_graphs:
+    print(graph)
     # ground truth graph
     true_amat = pd.read_csv(f"data/true_amat/{graph}.csv")
     true_amat = convert_amat(true_amat, col_names=True)
@@ -80,15 +85,17 @@ for graph in cont_graphs:
             est_amat = pd.read_csv(f"bnlearn/results/{method}/{graph}_{n}_obs.csv")
             est_amat = convert_amat(est_amat, col_names=True)
             g_est = nx.DiGraph(est_amat)
-            if graph in ["dag_s_0.22222", "dag_s_0.33333", "dag_s_0.44444", "dag_s_0.55556", "dag_s_0.66667"]:
+            if graph in ["dag_s_0.2", "dag_s_0.3", "dag_s_0.4"]:
                 tp, tn, fp, fn, d_separated_total, d_connected_total = exact(g_true, g_est, targets[f"{graph}"])
                 mc = "n/a"
-            elif graph in []:
-                mc = 1000
+            elif graph in ["dag_sm_0.1", "dag_sm_0.15", "dag_sm_0.2", "dag_m_0.04", "dag_m_0.06", "dag_m_0.08",
+                           "dag_l_0.02", "dag_l_0.03", "dag_l_0.04"]:
+                mc = 1000000
                 tp, tn, fp, fn, d_separated_total, d_connected_total = approx(g_true, g_est, targets[f"{graph}"],
                                                                               mc=mc, rand_state=42)
             else:
                 print("graph is not defined properly")
+                print(true_amat)
                 break
             dsep_share = d_separated_total / (d_separated_total + d_connected_total)
             if d_separated_total == 0:
