@@ -43,15 +43,15 @@ cat_vars = ['Gender', 'Education', 'Country', 'Ethnicity']
 for cat_var in cat_vars:
     X.loc[:, cat_var] = X.loc[:, cat_var].astype('category').cat.codes
 
-import seaborn as sns
-import matplotlib.pyplot as plt
-
-g = sns.PairGrid(X)
-g.map_upper(sns.scatterplot, s=15)
-g.map_lower(sns.kdeplot)
-g.map_diag(sns.kdeplot, lw=2)
-plt.savefig('drug_consumption_features_distplot.pdf')
-plt.close()
+# import seaborn as sns
+# import matplotlib.pyplot as plt
+#
+# g = sns.PairGrid(X)
+# g.map_upper(sns.scatterplot, s=15)
+# g.map_lower(sns.kdeplot)
+# g.map_diag(sns.kdeplot, lw=2)
+# plt.savefig('drug_consumption_features_distplot.pdf')
+# plt.close()
 
 # train / test da with logreg
 
