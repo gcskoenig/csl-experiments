@@ -1,3 +1,15 @@
+import argparse
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('nr_runs', type=int, default=1)
+parser.add_argument('savepath', type=str)
+
+args = parser.parse_args()
+
+savepath = args.savepath
+
+
 # dataset source https://archive.ics.uci.edu/ml/datasets/Drug+consumption+%28quantified%29#
 import random
 
@@ -9,7 +21,7 @@ import numpy as np
 import torch
 
 np.random.seed(123)
-torch.random.seed(123)
+torch.random.seed()
 
 var_names = ['ID', 'Age', 'Gender', 'Education', 'Country', 'Ethnicity', 'Nscore', 'Escore',
              'Oscore', 'Ascore', 'Cscore', 'Impulsive', 'SS', 'Alcohol', 'Amphet', 'Amyl',
@@ -77,6 +89,23 @@ ex.fi_means_stds()
 ex2 = wrk.ais_via_contextfunc(X_train.columns, X_test, y_test)
 ex2.fi_means_stds()
 
-ex_sage = wrk.sage(X_test, y_test, [tuple(X_test.columns)], nr_runs=1, nr_resample_marginalize=10,
+ex_sage, orderings_sage = wrk.sage(X_test, y_test, [tuple(X_test.columns)], nr_runs=args.nr_runs, nr_resample_marginalize=10,
                    detect_convergence=True, thresh=0.01, nr_orderings=1500)
 ex_sage.fi_means_stds()
+
+# save  orderings
+orderings_sage.to_csv(f'{savepath}/order_sage_runs{args.nr_runs}.csv')
+
+# save SAGE values for every ordering split by runs
+sage_values_scores = ex_sage.scores
+sage_values_scores.to_csv(f"{savepath}/sage_scores_runs{args.nr_runs}.csv")
+
+# save SAGE values for every ordering not split by runs
+sage_values_ordering = ex_sage.scores.mean(level=0)
+sage_values_ordering.to_csv(f"{savepath}/sage_o_runs{args.nr_runs}.csv")
+
+# fi_values for the runs
+ex_sage.fi_vals().to_csv(f"{savepath}/sage_r_runs{args.nr_runs}.csv")
+
+# fi_mean values across runs + stds
+ex_sage.fi_means_stds().to_csv(f"{savepath}/sage_runs{args.nr_runs}.csv")
