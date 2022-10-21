@@ -52,7 +52,7 @@ To generate synthetic linear Gaussian data using the R package 'pcalg'
 bash datagen_cont.sh
 ```
 
-The real-world datasets are available from: Link
+The real-world datasets are available from: https://archive.ics.uci.edu/ml/datasets/Drug+consumption+%28quantified%29#
 
 
 ## Causal Structure Learning
@@ -136,4 +136,15 @@ python visualization/bnlearn/runtime_and_f1.py --alg tabu
 python visualization/sage/runtime_sage.py 
 python visualization/sage/sage_values.py --model lm --degree 2 --top 5 
 python visualization/sage/deltas_boxplot.py --model lm --degree 2
+```
+
+## Real-world example
+
+Successively execute the following files from real-world-experiments folder.
+
+```
+python real-world-experiments/experiment_drug.py
+python sage_to_csl_drug.py
+sage_dsage_plot.py
+deltas_drugs.py
 ```
