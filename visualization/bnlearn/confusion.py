@@ -51,7 +51,7 @@ def conf(df, data, alg="tabu", size=10000, latex=True):
     if latex:
         # set plt font to standard Latex fonts
         plt.rc('text', usetex=True)
-        plt.rc('font', family='serif')
+        plt.rc('font', family='serif', size=14)
 
     df = df[df['Method'] == f"{alg}"]
 
@@ -280,7 +280,7 @@ def main(args):
     fig.text(0.5, 0.01, 'Predicted label', ha='center')
     fig.subplots_adjust(hspace=0.0, wspace=0.05, left=0.1)
 
-    plt.savefig(f"plots/bnlearn/confusion/confusion_cont_{args.alg}_{args.size}_obs_tight.png", dpi=400, transparent=True)
+    plt.savefig(f"plots/bnlearn/confusion/confusion_cont_{args.alg}_{args.size}_obs_tight_new.png", dpi=400, transparent=True)
     plt.clf()
 
 

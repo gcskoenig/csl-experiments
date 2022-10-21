@@ -9,7 +9,7 @@ create_folder("plots/bnlearn/f1")
 
 
 plt.rc('text', usetex=True)
-plt.rc('font', family='serif')
+plt.rc('font', family='serif', size=14)
 
 
 parser = argparse.ArgumentParser(description="confusion matrices")
@@ -63,7 +63,7 @@ y1_l4 = cont[cont['Graph'] == "dag_l_0.04"]["Runtime in s"]
 
 
 # y data (f1 scores per graph)
-df = pd.read_csv("bnlearn/results/graph_evaluation.csv")
+df = pd.read_csv("bnlearn/results/graph_eval_new.csv")
 y1 = df[df['Method'] == f"{args.alg}"]
 
 f1_s2 = []
@@ -123,17 +123,17 @@ axes[0, 0].set_title(r'DAG$_{s}$')
 # axes[0, 0].set_ylabel('Runtime in s')
 
 axes[0, 0].scatter(x2, f1_s2, color='b', s=0.4)
-b1 = axes[0, 0].plot(x2, f1_s2, color='b', linestyle='-', markevery=x_ticks, linewidth=0.7)
+axes[0, 0].plot(x2, f1_s2, color='b', linestyle='-', markevery=x_ticks, linewidth=0.7)
 axes[0, 0].scatter(x2, f1_s3, color='g', s=0.4)
-b2 = axes[0, 0].plot(x2, f1_s3, color='g', linestyle='-', markevery=x_ticks, linewidth=0.7)
-axes[0, 0].scatter(x2, f1_s4, color='c', s=0.4)
-b3 = axes[0, 0].plot(x2, f1_s4, color='c', linestyle='-', markevery=x_ticks, linewidth=0.7)
+axes[0, 0].plot(x2, f1_s3, color='g', linestyle='-', markevery=x_ticks, linewidth=0.7)
+axes[0, 0].scatter(x2, f1_s4, color='r', s=0.4)
+axes[0, 0].plot(x2, f1_s4, color='r', linestyle='-', markevery=x_ticks, linewidth=0.7)
 axes[0, 0].set_xticks([1, 2, 3, 4])
 axes[0, 0].set_xticklabels(x_ticks, fontsize=10)
 ax1 = axes[0, 0].twinx()
 ax1.bar(x1, y1_s2, width=0.2, color='b', align='center', alpha=0.3)
 ax1.bar(x2, y1_s3, width=0.2, color='g', align='center', alpha=0.3)
-ax1.bar(x3, y1_s4, width=0.2, color='c', align='center', alpha=0.3)
+ax1.bar(x3, y1_s4, width=0.2, color='r', align='center', alpha=0.3)
 
 
 
@@ -145,14 +145,14 @@ axes[0, 1].scatter(x2, f1_sm2, color='b', s=0.4)
 axes[0, 1].plot(x2, f1_sm2, color='b', linestyle='-', markevery=x_ticks, linewidth=0.7)
 axes[0, 1].scatter(x2, f1_sm3, color='g', s=0.4)
 axes[0, 1].plot(x2, f1_sm3, color='g', linestyle='-', markevery=x_ticks, linewidth=0.7)
-axes[0, 1].scatter(x2, f1_sm4, color='c', s=0.4)
-axes[0, 1].plot(x2, f1_sm4, color='c', linestyle='-', markevery=x_ticks, linewidth=0.7)
+axes[0, 1].scatter(x2, f1_sm4, color='r', s=0.4)
+axes[0, 1].plot(x2, f1_sm4, color='r', linestyle='-', markevery=x_ticks, linewidth=0.7)
 axes[0, 1].set_xticks([1, 2, 3, 4])
 axes[0, 1].set_xticklabels(x_ticks, fontsize=10)
 ax2 = axes[0, 1].twinx()
 ax2.bar(x1, y1_sm2, width=0.2, color='b', align='center', alpha=0.3)
 ax2.bar(x2, y1_sm3, width=0.2, color='g', align='center', alpha=0.3)
-ax2.bar(x3, y1_sm4, width=0.2, color='c', align='center', alpha=0.3)
+ax2.bar(x3, y1_sm4, width=0.2, color='r', align='center', alpha=0.3)
 
 # DAG_sm
 axes[1, 0].set_title(r'DAG$_{m}$')
@@ -162,14 +162,14 @@ axes[1, 0].scatter(x2, f1_m2, color='b', s=0.4)
 axes[1, 0].plot(x2, f1_m2, color='b', linestyle='-', markevery=x_ticks, linewidth=0.7)
 axes[1, 0].scatter(x2, f1_m3, color='g', s=0.4)
 axes[1, 0].plot(x2, f1_m3, color='g', linestyle='-', markevery=x_ticks, linewidth=0.7)
-axes[1, 0].scatter(x2, f1_m4, color='c', s=0.4)
-axes[1, 0].plot(x2, f1_m4, color='c', linestyle='-', markevery=x_ticks, linewidth=0.7)
+axes[1, 0].scatter(x2, f1_m4, color='r', s=0.4)
+axes[1, 0].plot(x2, f1_m4, color='r', linestyle='-', markevery=x_ticks, linewidth=0.7)
 axes[1, 0].set_xticks([1, 2, 3, 4])
 axes[1, 0].set_xticklabels(x_ticks, fontsize=10)
 ax3 = axes[1, 0].twinx()
 ax3.bar(x1, y1_m2, width=0.2, color='b', align='center', alpha=0.3)
 ax3.bar(x2, y1_m3, width=0.2, color='g', align='center', alpha=0.3)
-ax3.bar(x3, y1_m4, width=0.2, color='c', align='center', alpha=0.3)
+ax3.bar(x3, y1_m4, width=0.2, color='r', align='center', alpha=0.3)
 
 # DAG_l
 axes[1, 1].set_title(r'DAG$_{l}$')
@@ -179,29 +179,29 @@ axes[1, 1].scatter(x2, f1_l2, color='b', s=0.4)
 axes[1, 1].plot(x2, f1_l2, color='b', linestyle='-', markevery=x_ticks, linewidth=0.7)
 axes[1, 1].scatter(x2, f1_l3, color='g', s=0.4)
 axes[1, 1].plot(x2, f1_l3, color='g', linestyle='-', markevery=x_ticks, linewidth=0.7)
-axes[1, 1].scatter(x2, f1_l4, color='c', s=0.4)
-axes[1, 1].plot(x2, f1_l4, color='c', linestyle='-', markevery=x_ticks, linewidth=0.7)
+axes[1, 1].scatter(x2, f1_l4, color='r', s=0.4)
+axes[1, 1].plot(x2, f1_l4, color='r', linestyle='-', markevery=x_ticks, linewidth=0.7)
 axes[1, 1].set_ylim([0.3, 1])
 axes[1, 1].set_xticks([1, 2, 3, 4])
 axes[1, 1].set_xticklabels(x_ticks, fontsize=10)
 ax4 = axes[1, 1].twinx()
 ax4.bar(x1, y1_l2, width=0.2, color='b', align='center', alpha=0.3)
 ax4.bar(x2, y1_l3, width=0.2, color='g', align='center', alpha=0.3)
-ax4.bar(x3, y1_l4, width=0.2, color='c', align='center', alpha=0.3)
+ax4.bar(x3, y1_l4, width=0.2, color='r', align='center', alpha=0.3)
 
 
-legend_labels = [r"2", r"3",  r"4"]
-fig.legend([b1, b2, b3],     # The line objects
-           labels=legend_labels,   # The labels for each line
-           loc="lower center",   # Position of legend
-           bbox_to_anchor=(0.5, 0.0),
-           title="Avg. Degree",  # Title for the legend
-           fancybox=True, shadow=True, ncol=3, fontsize=8
-           )
-plt.subplots_adjust(bottom=0.2)
-fig.text(0.5, 0.1, 'Sample Size', ha='center')
-fig.text(0.05, 0.55, 'F1 score', va='center', rotation='vertical')
-fig.text(0.95, 0.55, 'Runtime in s', va='center', rotation='vertical')
+#legend_labels = [r"2", r"3",  r"4"]
+#fig.legend([b1, b2, b3],     # The line objects
+#           labels=legend_labels,   # The labels for each line
+#           loc="lower center",   # Position of legend
+#           bbox_to_anchor=(0.5, 0.0),
+#           title="Average Degree",  # Title for the legend
+#           fancybox=False, shadow=False, ncol=3, fontsize=8
+#           )
+plt.subplots_adjust(bottom=0.15)
+fig.text(0.5, 0.05, 'Sample Size', ha='center')
+fig.text(0.03, 0.5, 'F1 score', va='center', rotation='vertical')
+fig.text(0.975, 0.5, 'Runtime in s', va='center', rotation='vertical')
 fig.subplots_adjust(wspace=0.4)
 fig.subplots_adjust(hspace=0.3)
 
