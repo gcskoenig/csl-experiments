@@ -110,6 +110,7 @@ ENV/
 env.bak/
 venv.bak/
 
+
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -130,6 +131,7 @@ dmypy.json
 
 # experiments
 results/
+real-world-experiments/results/
 data/
 bnlearn/results/
 .idea/
@@ -137,6 +139,8 @@ bnlearn/results/
 .Rhistory
 bnlearn/.Rhistory
 bnlearn/.RData
+visualization/bnlearn/
+visualization/sage/
 
 function_eval.py
 src/

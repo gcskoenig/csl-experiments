@@ -27,7 +27,7 @@ var_names = ['ID', 'Age', 'Gender', 'Education', 'Country', 'Ethnicity', 'Nscore
              'Oscore', 'Ascore', 'Cscore', 'Impulsive', 'SS', 'Alcohol', 'Amphet', 'Amyl',
              'Benzos', 'Caff', 'Cannabis', 'Choc', 'Coke', 'Crack', 'Ecstasy', 'Heroin',
              'Ketamine', 'Legalh', 'LSD', 'Meth', 'Mushrooms', 'Nicotine', 'Semer', 'VSA']
-df = pd.read_csv('drug_consumption.csv', header=None)
+df = pd.read_csv('real-world-experiments/drug_consumption.csv', header=None)
 df.columns = var_names
 
 inputs = var_names[1:13]
