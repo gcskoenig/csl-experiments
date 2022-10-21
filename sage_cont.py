@@ -104,11 +104,11 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "-te",
-    "--test",
+    "-sr",
+    "--split_runs",
     type=bool,
     default=False,
-    help="test results",
+    help="split runs",
 )
 
 parser.add_argument(
@@ -116,7 +116,7 @@ parser.add_argument(
     "--run",
     type=int,
     default=None,
-    help="test results",
+    help="number of runs if runs are split",
 )
 
 
@@ -130,7 +130,7 @@ def main(args):
     # create results folder
     create_folder("results/")
     create_folder(f"results/{args.data}")
-    if args.test:
+    if args.split_runs:
         create_folder(f"results/{args.data}/test/")
         savepath = f"results/{args.data}/test"
     else:
@@ -176,7 +176,7 @@ def main(args):
     r2 = r2_score(y_test, y_pred)
     # fill df with info about model
     model_details.loc[len(model_details)] = [args.data, args.model, target, mse, r2]
-    if args.test:
+    if args.split_runs:
         model_details.to_csv(
             f"{savepath}/model_details_{args.data}_{args.model}_{args.run}.csv", index=False
         )
@@ -212,7 +212,7 @@ def main(args):
                                          extra_orderings=args.extra)
     time_sage = time.time() - start_time
 
-    if args.test:
+    if args.split_runs:
 
         # save  orderings
         orderings_sage.to_csv(f'{savepath}/order_sage_{args.data}_{args.model}_{args.run}.csv')

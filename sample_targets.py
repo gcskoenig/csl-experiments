@@ -1,6 +1,11 @@
 """Create a dictionary with all targets:
 - Sample targets for synthetic datasets
-- add targets for semi-synthetic datasets"""
+- add targets for semi-synthetic datasets
+
+Sample target was performed on different machines for different datasets, if you want to replicate the study with the
+exact same targets, execute python sample_targets.py, if you want to randomly sample targets, use the argument
+--sample True
+"""
 import random
 import pandas as pd
 from utils import create_folder
@@ -14,12 +19,13 @@ import argparse
 random.seed(1902)
 
 
-
 parser = argparse.ArgumentParser(description="Complete file for model fitting and SAGE estimation")
 
 parser.add_argument(
     "-s",
     "--sample",
+    default=False,
+    type=bool,
     help="Whether to sample data or create predefined target dictionary")
 
 arguments = parser.parse_args()
@@ -35,7 +41,7 @@ def main(args):
     path_of_the_directory = "data/"
     ext = ".csv"
     datasets = []
-    if args.sample == "sample":
+    if args.sample:
         for files in os.listdir(path_of_the_directory):
             if files.endswith(ext):
                 datasets.append(files[:len(files)-4])
@@ -75,3 +81,4 @@ def main(args):
 
 if __name__ == "__main__":
     main(arguments)
+
