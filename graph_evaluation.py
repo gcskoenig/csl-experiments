@@ -6,7 +6,7 @@ import pandas as pd
 from utils import exact, approx, convert_amat, create_folder
 import pickle
 
-# file for comparison   # TODO (cl) More elegant way than try-except-statement?
+# file for comparison   # TODO More elegant way than try-except-statement?
 try:
     graph_evaluation = pd.read_csv("bnlearn/results/graph_evaluation.csv")
 except:
@@ -20,8 +20,8 @@ with open('data/temp/targets.pkl', 'rb') as f:
     targets = pickle.load(f)
 
 # adapt for final experiments
-discrete_graphs = ["asia", "sachs", "alarm", "hepar"]
-
+#discrete_graphs = ["asia", "sachs", "alarm", "hepar"]
+discrete_graphs = []
 cont_graphs = ["dag_s_0.2", "dag_s_0.3", "dag_s_0.4", "dag_sm_0.1", "dag_sm_0.15", "dag_sm_0.2",
                "dag_m_0.04", "dag_m_0.06", "dag_m_0.08", "dag_l_0.02", "dag_l_0.03", "dag_l_0.04"]
 
@@ -31,7 +31,6 @@ cont_algs = ["hc", "tabu"]
 
 # compare graphs with less than 1M d-separations by evaluating exact inference
 for graph in discrete_graphs:
-    print(graph)
     # ground truth graph
     true_amat = pd.read_csv(f"data/true_amat/{graph}.csv")
     true_amat = convert_amat(true_amat)
@@ -75,7 +74,6 @@ for graph in discrete_graphs:
             graph_evaluation.loc[len(graph_evaluation)] = content
 
 for graph in cont_graphs:
-    print(graph)
     # ground truth graph
     true_amat = pd.read_csv(f"data/true_amat/{graph}.csv")
     true_amat = convert_amat(true_amat, col_names=True)

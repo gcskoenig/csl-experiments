@@ -1,5 +1,5 @@
 """
-SAGE Evaluation for continuous data for experiments in 'Causal Structure Learning for Efficient SAGE Estimation'
+SAGE Evaluation for continuous data for experiments in 'Efficient SAGE Estimation via Causal Structure Learning'
 
 Command line args:
     --data csv-file in folder ~/data/ (string without suffix)
@@ -26,9 +26,10 @@ import pickle
 import networkx as nx
 from utils import convert_amat
 import regex as re
+import seaborn as sns
 
 
-parser = argparse.ArgumentParser(description="Complete file for model fitting and SAGE estimation")
+parser = argparse.ArgumentParser(description="")
 
 parser.add_argument(
     "-d",
@@ -48,7 +49,7 @@ parser.add_argument(
     "--size",
     type=int,
     default=10000,
-    help="Custom sample size to slice df to, default: 20000",
+    help="Custom sample size to slice df to, default: 10000",
 )
 
 parser.add_argument(
@@ -63,7 +64,7 @@ parser.add_argument(
     "-no",
     "--no_order",
     type=int,
-    default=10,
+    default=100,
     help="Orderings to evaluate",
 )
 
@@ -98,8 +99,7 @@ def main(args):
     create_folder(f"results/{args.data}")
     savepath = f"results/{args.data}"
 
-    # df to store some metadata TODO (cl) Make this a dataframe for saved runtime
-    col_names_meta = ["dsep pos", "dsep neg", "ai_via pos", "ai_via neg"]
+    col_names_meta = ["dsep pos", "dsep neg", "ai_via pos", "ai_via neg", "no. orderings"]
     metadata = pd.DataFrame(columns=col_names_meta)
 
     # import and prepare data
@@ -123,7 +123,7 @@ def main(args):
         model = LinearRegression()
     if args.model == "rf":
         # fit model
-        model = RandomForestRegressor(n_estimators=100)     # TODO (cl) command line argument?
+        model = RandomForestRegressor(n_estimators=100)     # TODO command line argument?
 
     model.fit(X_train, y_train)
     # model evaluation
@@ -145,11 +145,11 @@ def main(args):
 
     # load everything required for the runtime benchmark
     orderings_sage = pd.read_csv(f"results/{args.data}/order_sage_{args.data}_{args.model}.csv", index_col="ordering")
-    # adj_mat = pd.read_csv(f'bnlearn/results/tabu/{args.data}.csv')
-    adj_mat = pd.read_csv(f'data/true_amat/{args.data}.csv')
+    adj_mat = pd.read_csv(f'bnlearn/results/tabu/{args.data}_{args.size}_obs.csv')
+    # adj_mat = pd.read_csv(f'data/true_amat/{args.data}.csv')
     adj_mat = convert_amat(adj_mat, col_names=True)
     g = nx.DiGraph(adj_mat)
-    orderings_no = list(range(int(len(orderings_sage)/5)))
+    orderings_no = list(range(int(len(orderings_sage)/args.runs)))
     orderings_random = np.random.permutation(orderings_no)
     # init times:
     time_dsep_test_pos = 0
@@ -158,8 +158,11 @@ def main(args):
     time_ai_via_neg = 0
     orderings_evaluated = 0
     for i in orderings_random:
-        j = random.choice(range(0, 5))
-        ordering = list(orderings_sage.loc[i][orderings_sage.loc[i]["sample"] == j].loc[i])[1]
+        j = random.choice(range(0, args.runs))
+        try:
+            ordering = list(orderings_sage.loc[i][orderings_sage.loc[i]["sample"] == j].loc[i])[1]
+        except:
+            ordering = "nan"
         if str(ordering) == 'nan':
             pass
         else:
@@ -200,10 +203,11 @@ def main(args):
         if orderings_evaluated > args.no_order:
             break
 
-    times = [time_dsep_test_pos, time_dsep_test_neg, time_ai_via_pos, time_ai_via_neg]
+    times = [time_dsep_test_pos, time_dsep_test_neg, time_ai_via_pos, time_ai_via_neg, args.no_order]
     metadata.loc[0] = times
     metadata.to_csv(f"{savepath}/ai_via_{args.data}_{args.model}.csv", index=False)
 
 
 if __name__ == "__main__":
     main(arguments)
+
