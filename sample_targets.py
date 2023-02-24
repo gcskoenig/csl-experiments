@@ -41,6 +41,7 @@ def main(args):
     path_of_the_directory = "data/"
     ext = ".csv"
     datasets = []
+    # if args.sample is True other targets than used in the study may be sampled
     if args.sample:
         for files in os.listdir(path_of_the_directory):
             if files.endswith(ext):

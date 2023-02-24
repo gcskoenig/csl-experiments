@@ -1,11 +1,12 @@
-"""Plot SAGE values and their differences to SAGE_CG and SAGE_CG_CD"""
+"""Plot SAGE values and their differences to SAGE_CGs"""
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-import math
+# import seaborn as sns
+# import numpy as np
+# import math
+import matplotlib
 import argparse
-from utils import fi_hbarplot, hbar_text_position, coord_height_to_pixels
+from utils import fi_hbarplot, hbar_text_position, coord_height_to_pixels, create_folder
 
 
 parser = argparse.ArgumentParser(description="SAGE values")
@@ -31,11 +32,24 @@ parser.add_argument(
     default=5,
     help="top values")
 
+parser.add_argument(
+    "-sr",
+    "--single",
+    type=bool,
+    default=False,
+    help="single run?")
+
 
 args = parser.parse_args()
 
+create_folder("plots/")
+create_folder("plots/sage/")
 
 # for latex font
+# type 1 font
+matplotlib.rcParams['text.usetex'] = True
+plt.style.use('tableau-colorblind10')
+
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
@@ -47,15 +61,12 @@ datasets_list = [datasets1, datasets2]
 model = args.model
 
 
-#ax[0, 2].set_title('SAGE')
-#ax[0, 3].set_title(r'SAGE - $d$-SAGE')
-
 for k in range(2):
     # initiate plot, fill it in for loop
-    fig, ax = plt.subplots(2, 2, figsize=(5, 7))
+    fig, ax = plt.subplots(2, 2, figsize=(7, 5))
     fig.tight_layout(pad=2.1)
-    ax[0, 0].set_title('SAGE')
-    ax[0, 1].set_title(r'SAGE - $d$-SAGE')
+    ax[0, 0].set_title('SAGE', fontsize=20)
+    ax[0, 1].set_title(r'SAGE - $d$-SAGE', fontsize=20)
     datasets = datasets_list[k]
     for i in range(2):
         # load data
@@ -104,36 +115,46 @@ for k in range(2):
         diff_sage_dsage['feature'] = diff_sage_dsage.index
         diff_sage_dsage = diff_sage_dsage[diff_sage_dsage["feature"].isin(labels_str)]
 
+        if args.single:
+            sage_single = pd.read_csv(f"results/{data}/sage_r_{data}_{model}.csv")
+            sage_df = pd.DataFrame()
+            sage_df["feature"] = sage_single.columns[1:len(sage_single.columns)]
+            # not a mean just single value
+            sage_df["mean"] = list(sage_single.loc[0][1:len(sage_single.loc[0])])
+            sage_df = sage_df[sage_df["feature"].isin(labels_str)]
+            sage_df["std"] = sage["std"]
+            sage = sage_df
+            # print(sage_df)
 
         # plots
         if i == 0:
-            fi_hbarplot(sage, diff_sage_dsage, ax=ax[0, 0], std=False)
+            fi_hbarplot(sage, diff_sage_dsage, ax=ax[0, 0], std=True)
             fi_hbarplot(diff_sage_dsage, diff_sage_dsage, ax=ax[0, 1])
 
         if i == 1:
-            fi_hbarplot(sage, diff_sage_dsage, ax=ax[1, 0], std=False)
+            fi_hbarplot(sage, diff_sage_dsage, ax=ax[1, 0], std=True)
             fi_hbarplot(diff_sage_dsage, diff_sage_dsage, ax=ax[1, 1])
 
         if i == 2:
-            fi_hbarplot(sage, diff_sage_dsage, ax=ax[1, 0], std=False)
+            fi_hbarplot(sage, diff_sage_dsage, ax=ax[1, 0], std=True)
             fi_hbarplot(diff_sage_dsage, diff_sage_dsage, ax=ax[1, 1])
 
         if i == 3:
-            fi_hbarplot(sage, diff_sage_dsage, ax=ax[1, 2], std=False)
+            fi_hbarplot(sage, diff_sage_dsage, ax=ax[1, 2], std=True)
             fi_hbarplot(diff_sage_dsage, diff_sage_dsage, ax=ax[1, 3])
 
 
     if k == 0:
-        ax[0, 0].set_ylabel('DAG$_{s}$', fontsize=14)
+        ax[0, 0].set_ylabel('DAG$_{s}$', fontsize=18)
         #ax[0, 2].set_ylabel('DAG$_{sm}$')
-        ax[1, 0].set_ylabel('DAG$_{m}$', fontsize=14)
+        ax[1, 0].set_ylabel('DAG$_{m}$', fontsize=18)
         #ax[1, 2].set_ylabel('DAG$_{l}$')
         ax[1, 0].set_xticks([0.0, 0.2, 0.4])
         ax[1, 0].set_xticklabels([0.0, 0.2, 0.4])
     if k == 1:
-        ax[0, 0].set_ylabel('DAG$_{sm}$', fontsize=14)
+        ax[0, 0].set_ylabel('DAG$_{sm}$', fontsize=18)
         #ax[0, 2].set_ylabel('DAG$_{sm}$')
-        ax[1, 0].set_ylabel('DAG$_{l}$', fontsize=14)
+        ax[1, 0].set_ylabel('DAG$_{l}$', fontsize=18)
         #ax[1, 2].set_ylabel('DAG$_{l}$')
 
     ax[0, 1].yaxis.set_visible(False)
@@ -144,5 +165,10 @@ for k in range(2):
 
     plt.subplots_adjust(hspace=0.3, wspace=0)
 
-    plt.savefig(f"plots/sage/sage_values_{args.model}_{args.degree}_{k+1}.png", dpi=600, transparent=True)
+    if args.single:
+        plt.savefig(f"plots/sage/sage_values_{args.model}_{args.degree}_{k + 1}_sd_single_run.png", dpi=300, transparent=True)
+    elif args.top == 5:
+        plt.savefig(f"plots/sage/sage_values_{args.model}_{args.degree}_{k + 1}_sd_top5.png", dpi=300, transparent=True)
+    else:
+        plt.savefig(f"plots/sage/sage_values_{args.model}_{args.degree}_{k+1}_sd.png", dpi=300, transparent=True)
     plt.clf()

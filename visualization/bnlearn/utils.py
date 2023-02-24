@@ -300,7 +300,7 @@ def convert_amat(df, col_names=False):
     mapping_rf = {False: 0, True: 1}
     col_names = df.columns
     for j in col_names:
-        df[j] = df.replace({j: mapping_rf})[j]  # TODO (cl) [j] required in the end?
+        df[j] = df.replace({j: mapping_rf})[j]  # TODO [j] required in the end?
 
     # modify adjacency matrix for use in networkx package
     df = df.set_axis(df.columns, axis=0)

@@ -8,6 +8,6 @@ declare -a datasets=( dag_s_0.2 dag_sm_0.1 dag_m_0.04 dag_l_0.02
 for data in "${datasets[@]}"
 do
   echo "$data"
-  ai_via_timing.py --data "$data"--model lm --size 10000 --runs 5 --no_order 100
-  ai_via_timing.py --data "$data"--model rf --size 10000 --runs 5 --no_order 100
+  python ai_via_timing.py --data "$data"--model lm --size 10000 --runs 5 --no_order 100
+  python ai_via_timing.py --data "$data"--model rf --size 10000 --runs 5 --no_order 100
 done

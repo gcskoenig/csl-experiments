@@ -1,5 +1,6 @@
 """Confusion matrices of d-separation inference by causal structure learning algorithms"""
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 import sys
@@ -15,6 +16,9 @@ create_folder("plots/")
 create_folder("plots/bnlearn/")
 create_folder("plots/bnlearn/confusion")
 
+# type 1 font
+matplotlib.rcParams['text.usetex'] = True
+plt.style.use('tableau-colorblind10')
 
 parser = argparse.ArgumentParser(description="confusion matrices")
 
@@ -43,7 +47,7 @@ parser.add_argument(
 
 arguments = parser.parse_args()
 
-dataframe = pd.read_csv("bnlearn/results/graph_eval_new.csv")
+dataframe = pd.read_csv("bnlearn/results/graph_evaluation.csv")
 
 
 def conf(df, data, alg="tabu", size=10000, latex=True):
@@ -85,54 +89,9 @@ def conf(df, data, alg="tabu", size=10000, latex=True):
 
 def main(args):
 
-    #fig, ax = plt.subplots(1, 4, figsize=(8, 2.2))
-    #fig.tight_layout()
-#
-    #disp_asia = ConfusionMatrixDisplay(confusion_matrix=conf(dataframe, data="asia", alg=args.alg, size=args.size),
-    #                                   display_labels=[r"$\not\perp_{\mathcal{G}}$", r"$\perp_{\mathcal{G}}$"])
-#
-    #disp_sachs = ConfusionMatrixDisplay(confusion_matrix=conf(dataframe, data="sachs", alg=args.alg, size=args.size),
-    #                                    display_labels=[r"$\not\perp_{\mathcal{G}}$", r"$\perp_{\mathcal{G}}$"])
-#
-    #disp_alarm = ConfusionMatrixDisplay(confusion_matrix=conf(dataframe, data="alarm", alg=args.alg, size=args.size),
-    #                                    display_labels=[r"$\not\perp_{\mathcal{G}}$", r"$\perp_{\mathcal{G}}$"])
-#
-    #disp_hepar = ConfusionMatrixDisplay(confusion_matrix=conf(dataframe, data="hepar", alg=args.alg, size=args.size),
-    #                                    display_labels=[r"$\not\perp_{\mathcal{G}}$", r"$\perp_{\mathcal{G}}$"])
-#
-    #disp_asia.plot(ax=ax[0], cmap="Blues")
-    #disp_asia.ax_.set_title(r"Asia")
-    #disp_asia.im_.colorbar.remove()
-    #disp_asia.ax_.set_xlabel('')
-    #disp_asia.ax_.set_ylabel('')
-#
-    #disp_sachs.plot(ax=ax[1], cmap="Blues")
-    #disp_sachs.ax_.set_title(r"Sachs")
-    #disp_sachs.im_.colorbar.remove()
-    #disp_sachs.ax_.set_xlabel('')
-    #disp_sachs.ax_.set_ylabel('')
-#
-    #disp_alarm.plot(ax=ax[2], cmap="Blues")
-    #disp_alarm.ax_.set_title(r"Alarm")
-    #disp_alarm.im_.colorbar.remove()
-    #disp_alarm.ax_.set_xlabel('')
-    #disp_alarm.ax_.set_ylabel('')
-#
-    #disp_hepar.plot(ax=ax[3], cmap="Blues")
-    #disp_hepar.ax_.set_title(r"Hepar II")
-    #disp_hepar.im_.colorbar.remove()
-    #disp_hepar.ax_.set_xlabel('')
-    #disp_hepar.ax_.set_ylabel('')
-#
-    #fig.text(0.0, 0.5, 'True label', va='center', rotation='vertical')
-    #fig.text(0.5, 0.01, 'Predicted label', ha='center')
-#
-    #plt.savefig(f"plots/bnlearn/confusion/confusion_discrete_{args.alg}_{args.size}_obs.png", dpi=400, transparent=True)
-    #plt.clf()
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif')
     fig, ax = plt.subplots(3, 4, figsize=(6, 4))
-   #  fig.tight_layout()
 
     disp_dag_s_02 = ConfusionMatrixDisplay(confusion_matrix=conf(dataframe, data="dag_s_0.2", alg=args.alg,
                                            size=args.size), display_labels=[r"$\not\perp_{\mathcal{G}}$",
@@ -243,38 +202,45 @@ def main(args):
     ax[1, 3].yaxis.set_visible(False)
 
     # avg degree 4
-    disp_dag_s_04.plot(ax=ax[2, 0], cmap="Reds")
+    disp_dag_s_04.plot(ax=ax[2, 0], cmap="Oranges")
     disp_dag_s_04.im_.colorbar.remove()
     disp_dag_s_04.ax_.set_xlabel('')
     disp_dag_s_04.ax_.set_ylabel('')
 
-    disp_dag_sm_02.plot(ax=ax[2, 1], cmap="Reds")
+    disp_dag_sm_02.plot(ax=ax[2, 1], cmap="Oranges")
     disp_dag_sm_02.im_.colorbar.remove()
     disp_dag_sm_02.ax_.set_xlabel('')
     disp_dag_sm_02.ax_.set_ylabel('')
     ax[2, 1].yaxis.set_visible(False)
 
-    disp_dag_m_008.plot(ax=ax[2, 2], cmap="Reds")
+    disp_dag_m_008.plot(ax=ax[2, 2], cmap="Oranges")
     disp_dag_m_008.im_.colorbar.remove()
     disp_dag_m_008.ax_.set_xlabel('')
     disp_dag_m_008.ax_.set_ylabel('')
     ax[2, 2].yaxis.set_visible(False)
 
-    disp_dag_l_004.plot(ax=ax[2, 3], cmap="Reds")
+    disp_dag_l_004.plot(ax=ax[2, 3], cmap="Oranges")
     disp_dag_l_004.im_.colorbar.remove()
     disp_dag_l_004.ax_.set_xlabel('')
     disp_dag_l_004.ax_.set_ylabel('')
     ax[2, 3].yaxis.set_visible(False)
 
-    fig.text(0.05, 0.5, 'True label', va='center', rotation='vertical')
-    #fig.text(0.95, 0.85, r"DAG$_{s}$", va='center', rotation='vertical')
-    #fig.text(0.95, 0.65, r"DAG$_{sm}$", va='center', rotation='vertical')
-    #fig.text(0.95, 0.45, r"DAG$_{m}$", va='center', rotation='vertical')
-    #fig.text(0.95, 0.25, r"DAG$_{l}$", va='center', rotation='vertical')
-    fig.text(0.53, 0.01, 'Predicted label', ha='center')
-    fig.subplots_adjust(hspace=0.05, wspace=0.05)
+    # custom legend
+    from matplotlib.patches import Patch
+    from matplotlib.lines import Line2D
 
-    plt.savefig(f"plots/bnlearn/confusion/confusion_cont_{args.alg}_{args.size}_tight.png", dpi=400, transparent=True)
+    legend_elements = [Line2D([0], [0], color='b', lw=2, label='2'),
+                       Line2D([0], [0], color='g', lw=2, label='3'),
+                       Line2D([0], [0], color='orange', lw=2, label='4')]
+    fig.legend(handles=legend_elements, loc='lower center', bbox_to_anchor=(0.53, -0.0), title="Average Degree",
+               fancybox=True, shadow=True, ncol=3, fontsize=8)
+
+    fig.text(0.05, 0.5, 'True label', va='center', rotation='vertical')
+
+    fig.text(0.53, 0.12, 'Predicted label', ha='center')
+    fig.subplots_adjust(hspace=0.05, wspace=0.05, bottom=0.22)
+
+    plt.savefig(f"plots/bnlearn/confusion/confusion_cont_{args.alg}_{args.size}_tight.png", dpi=300, transparent=True)
     plt.clf()
 
 

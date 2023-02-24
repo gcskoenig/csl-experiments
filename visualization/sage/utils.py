@@ -1,4 +1,3 @@
-import numpy as np
 import matplotlib.pyplot as plt
 from itertools import combinations
 import pandas as pd
@@ -7,9 +6,8 @@ import random
 import scipy.special as sp
 import numpy as np
 import os
-from scipy.stats import bernoulli
+from scipy.stats import bernoulli, norm
 import warnings
-
 
 def powerset(items):
     """computes power set of iterable object items
@@ -348,16 +346,389 @@ def fi_hbarplot(ex, df , textformat='{:5.2f}', ax=None, figsize=None, std=True, 
 
     ixs = np.arange(rfis.shape[0] + 0.5, 0.5, -1)
     if std:
-        ax.barh(ixs, rfis, tick_label=names, xerr=std_factor*stds, capsize=5, color=['mistyrose',
-                                                                      'salmon', 'tomato',
-                                                                      'darksalmon', 'coral'])
+        #ax.barh(ixs, rfis, tick_label=names, xerr=std_factor*stds, capsize=5, color=['mistyrose',
+        #                                                              'salmon', 'tomato',
+        #                                                              'darksalmon', 'coral'])
+        ax.barh(ixs, rfis, tick_label=names, xerr=std_factor*stds, capsize=5)
     else:
-        ax.barh(ixs, rfis, tick_label=names, capsize=5, color=['mistyrose',
-                                                                      'salmon', 'tomato',
-                                                                      'darksalmon', 'coral'])
+        #ax.barh(ixs, rfis, tick_label=names, capsize=5, color=['mistyrose',
+        #                                                              'salmon', 'tomato',
+        #                                                              'darksalmon', 'coral'])
+        ax.barh(ixs, rfis, tick_label=names, capsize=5)
 
 
     # color = ['lightcoral',
     #          'moccasin', 'darkseagreen',
     #          'paleturquoise', 'lightsteelblue']
     return ax
+
+
+def convergence_plot(data, scores = None, top=None, bottom=None, choose=None, latex_font=False, alpha=0.05, ax=None, figsize=None,
+                     ci_bands="sd", std="run", legend=True, loc='upper right', time_axis=False, runtime=2000):
+    """
+    Function that plots the result of an RFI computation as a convergence plot based on the values per ordering
+    Args:
+        data: explanation object from package
+        top: number of top values to be plotted (cannot be combined with bottom)
+        bottom: number of bottom values to be plotted (cannot be combined with top)
+        choose: [x,y], x int, y int, range of values to plot, x is (x+1)th largest, y is y-th largest value
+        latex_font: Bool - toggle LaTeX font
+        alpha: alpha for confidence bands
+        ax:
+        figsize:
+        legend: addd legend to plot/axes
+        loc: position of legend; default: 'upper right' # TODO (cl): custom location of legend
+    """
+
+    # TODO (cl) check correct syntax for version > 3.8
+    # TODO (cl) for package uncomment next line, delete l33
+    # data = data.scores.groupby(level='orderings').mean()
+
+    if ax is None:
+        if figsize is None:
+            fig, ax = plt.subplots(figsize=(4, 4))
+        else:
+            fig, ax = plt.subplots(figsize=figsize)
+
+    # drop column 'ordering' if it is present
+    if 'ordering' in data.columns:
+        data = data.drop(['ordering'], axis=1)
+
+    # latex font TODO (cl) more generic? use all plt options?
+    if latex_font:
+        # for latex font
+        plt.rc('text', usetex=True)
+        plt.rc('font', family='serif')
+
+    # get the sage values (mean across all orderings)
+    sage_mean = data.mean()
+
+    if (top is not None and bottom is not None) or (top is not None and choose is not None) \
+            or (bottom is not None and choose is not None):
+        raise ValueError("Arguments top, bottom or choose cannot be used together.")
+
+    if top is not None:
+        # absolute values to rank sage values and then retrieve the top values
+        sage_mean = abs(sage_mean)
+        sage_ordered = sage_mean.sort_values(ascending=False)   # i.e descending -> top first
+        sage_top = sage_ordered.iloc[0:top]
+        # indices of top values
+        indices = sage_top.index
+
+    elif bottom is not None:
+        # absolute values to rank sage values and then retrieve the bottom values
+        sage_mean = abs(sage_mean)
+        sage_ordered = sage_mean.sort_values(ascending=True)
+        sage_bottom = sage_ordered.iloc[0:bottom]
+        # indices of bottom values
+        indices = sage_bottom.index
+
+    elif choose is not None:
+        # absolute values to rank sage values and then retrieve the bottom values
+        sage_mean = abs(sage_mean)
+        sage_ordered = sage_mean.sort_values(ascending=False)
+        sage_choose = sage_ordered.iloc[choose[0]:choose[1]]
+        # indices of bottom values
+        indices = sage_choose.index
+
+    else:
+        indices = sage_mean.index
+
+    # trim to relevant data
+    data = data[indices]
+
+    # running means up to current ordering (this is the line to be plotted)
+    running_mean = pd.DataFrame(columns=data.columns)
+    for j in range(2, len(data)):
+        running_mean.loc[j] = data[0:j + 1].mean()
+    running_mean = running_mean.reset_index(drop=True)
+
+    # get convergence bands for sage from running means of the [nr_runs] runs if scores are passed
+    if std == "run":
+        if scores is None:
+            raise ValueError("Scores df has to be passed")
+        running_means = []
+        for i in range(max(scores["sample"]) + 1):
+            run_mean = pd.DataFrame(columns=scores.columns)
+            scores_copy = scores[scores["sample"] == i]
+            print("scores copy: ", len(scores_copy))
+            # running means up to current ordering
+            for j in range(2, len(scores_copy)):
+                run_mean.loc[j] = scores_copy[0:j + 1].mean()
+            run_mean = run_mean.reset_index(drop=True)
+            running_means.append(run_mean)
+            # running_means now has [nr_runs] df's of running means, for each
+
+        # get sds from running_means
+        std_sage = pd.DataFrame(columns=data.columns)
+        # k is the number of orderings to go through
+        print("len running means 0: ", len(running_means[0]))
+        for k in range(len(running_means[0])):
+            # get a row of stds for the first running mean, then append the df, then second etc
+            sds = []
+            for col_index in indices:
+                current_means = []
+                for run in range(len(running_means)):
+                    current_means.append(running_means[run][col_index][k])
+                sds.append(np.std(current_means))
+            std_sage.loc[k] = sds
+
+    # get the standard deviations after every ordering starting with the third
+    if std == "ordering":
+        std_sage = pd.DataFrame(columns=data.columns)
+        for i in range(2, len(data)):
+            # TODO rewrite and shorten
+            diffs = data[0:i+1] - data[0:i+1].mean()
+            # squared differences
+            diffs2 = diffs*diffs
+            # sum of squared diffs
+            diffs2_sum = diffs2.sum()
+            # sum of diffs
+            diffs_sum = diffs.sum()
+            # diffs_sum2 = (diffs_sum * diffs_sum)
+            # diffs_sum2_n = (diffs_sum2/ii)
+            variance = (diffs2_sum - ((diffs_sum * diffs_sum)/i)) / (i - 1)
+            std = variance**0.5
+            std_sage.loc[i-2] = std
+            # std_sage is a (no_order - 2) x len(indices) matrix
+
+    # make confidence bands
+    lower = pd.DataFrame(columns=running_mean.columns)
+    upper = pd.DataFrame(columns=running_mean.columns)
+
+    for k in range(len(running_mean)):
+        # NOTE: k+3 because first 3 rows were dropped before
+        if ci_bands == "Gaussian":
+            # TODO: use t-distribution (in general: Gaussian in the limit, because every summand is a RV -> are they indep? NO)
+            # TODO: this is wrong anyways, but 'sd' is fine
+            lower.loc[k] = running_mean.loc[k] + norm.ppf(alpha/2) * (std_sage.loc[k] / np.sqrt(k + 3))
+            upper.loc[k] = running_mean.loc[k] - norm.ppf(alpha/2) * (std_sage.loc[k] / np.sqrt(k + 3))
+        elif ci_bands == "sd":
+            lower.loc[k] = running_mean.loc[k] + std_sage.loc[k]
+            upper.loc[k] = running_mean.loc[k] - std_sage.loc[k]
+
+    x_axis = []
+    for ll in range(len(running_mean)):
+        x_axis.append(ll)
+
+    # fig = plt.figure(figsize=(5,5))
+    ax.plot(x_axis, running_mean, linewidth=0.7)
+
+    for n in lower.columns:
+        ax.fill_between(x_axis, lower[n], upper[n], alpha=.1)
+
+    labels = data.columns
+    if legend:
+        ax.legend(loc=loc, labels=labels)
+
+    # TODO: times_axis does not work yet
+    if time_axis:
+        runtime = runtime
+        times = []
+        for i in range(len(running_mean)):
+            times.append(i * (runtime / len(running_mean)))
+        ax2 = ax.twinx()
+        ax2.plot(x_axis, times, alpha=0.5)
+        # ax2 = ax.twiny()
+        # ax2.plot(range(0, time_axis, int(time_axis/20)), np.ones(time_axis))
+
+    return ax, std_sage, indices
+
+def convergence_plot_dsage(data, scores = None, top=None, bottom=None, choose=None, latex_font=False, alpha=0.05, ax=None, figsize=None,
+                     ci_bands="sd", std="run", legend=True, loc='upper right', time_axis=False, runtime=2000, index_set=None):
+    """
+    Function that plots the result of an RFI computation as a convergence plot based on the values per ordering
+    Args:
+        data: explanation object from package
+        top: number of top values to be plotted (cannot be combined with bottom)
+        bottom: number of bottom values to be plotted (cannot be combined with top)
+        choose: [x,y], x int, y int, range of values to plot, x is (x+1)th largest, y is y-th largest value
+        latex_font: Bool - toggle LaTeX font
+        alpha: alpha for confidence bands
+        ax:
+        figsize:
+        legend: addd legend to plot/axes
+        loc: position of legend; default: 'upper right' # TODO (cl): custom location of legend
+    """
+
+    # TODO (cl) check correct syntax for version > 3.8
+    # TODO (cl) for package uncomment next line, delete l33
+    # data = data.scores.groupby(level='orderings').mean()
+
+    if ax is None:
+        if figsize is None:
+            fig, ax = plt.subplots(figsize=(4, 4))
+        else:
+            fig, ax = plt.subplots(figsize=figsize)
+
+    # drop column 'ordering' if it is present
+    if 'ordering' in data.columns:
+        data = data.drop(['ordering'], axis=1)
+
+    # latex font TODO (cl) more generic? use all plt options?
+    if latex_font:
+        # for latex font
+        plt.rc('text', usetex=True)
+        plt.rc('font', family='serif')
+
+    # get the sage values (mean across all orderings)
+    sage_mean = data.mean()
+
+    if (top is not None and bottom is not None) or (top is not None and choose is not None) \
+            or (bottom is not None and choose is not None):
+        raise ValueError("Arguments top, bottom or choose cannot be used together.")
+
+    if top is not None:
+        # absolute values to rank sage values and then retrieve the top values
+        sage_mean = abs(sage_mean)
+        sage_ordered = sage_mean.sort_values(ascending=False)   # i.e descending -> top first
+        sage_top = sage_ordered.iloc[0:top]
+        # indices of top values
+        indices = sage_top.index
+
+    elif bottom is not None:
+        # absolute values to rank sage values and then retrieve the bottom values
+        sage_mean = abs(sage_mean)
+        sage_ordered = sage_mean.sort_values(ascending=True)
+        sage_bottom = sage_ordered.iloc[0:bottom]
+        # indices of bottom values
+        indices = sage_bottom.index
+
+    elif choose is not None:
+        # absolute values to rank sage values and then retrieve the bottom values
+        sage_mean = abs(sage_mean)
+        sage_ordered = sage_mean.sort_values(ascending=False)
+        sage_choose = sage_ordered.iloc[choose[0]:choose[1]]
+        # indices of bottom values
+        indices = sage_choose.index
+
+    elif index_set is not None:
+        indices = index_set
+
+    else:
+        indices = sage_mean.index
+
+    # trim to relevant data
+    data = data[indices]
+
+    # running means up to current ordering (this is the line to be plotted)
+    running_mean = pd.DataFrame(columns=data.columns)
+    for j in range(2, len(data)):
+        running_mean.loc[j] = data[0:j + 1].mean()
+    running_mean = running_mean.reset_index(drop=True)
+
+    # get convergence bands for sage from running means of the [nr_runs] runs if scores are passed
+    if std == "run":
+        if scores is None:
+            raise ValueError("Scores df has to be passed")
+        running_means = []
+        for i in range(max(scores["sample"]) + 1):
+            run_mean = pd.DataFrame(columns=scores.columns)
+            scores_copy = scores[scores["sample"] == i]
+            # running means up to current ordering
+            for j in range(2, len(scores_copy)):
+                run_mean.loc[j] = scores_copy[0:j + 1].mean()
+            run_mean = run_mean.reset_index(drop=True)
+            running_means.append(run_mean)
+            # running_means now has [nr_runs] df's of running means, for each
+
+        # get sds from running_means
+        std_sage = pd.DataFrame(columns=data.columns)
+        # k is the number of orderings to go through
+        for k in range(len(running_means[0])):
+            # get a row of stds for the first running mean, then append the df, then second etc
+            sds = []
+            for col_index in indices:
+                current_means = []
+                for run in range(len(running_means)):
+                    current_means.append(running_means[run][col_index][k])
+                sds.append(np.std(current_means))
+            std_sage.loc[k] = sds
+
+    # get the standard deviations after every ordering starting with the third
+    if std == "ordering":
+        std_sage = pd.DataFrame(columns=data.columns)
+        for i in range(2, len(data)):
+            # TODO rewrite and shorten
+            diffs = data[0:i+1] - data[0:i+1].mean()
+            # squared differences
+            diffs2 = diffs*diffs
+            # sum of squared diffs
+            diffs2_sum = diffs2.sum()
+            # sum of diffs
+            diffs_sum = diffs.sum()
+            # diffs_sum2 = (diffs_sum * diffs_sum)
+            # diffs_sum2_n = (diffs_sum2/ii)
+            variance = (diffs2_sum - ((diffs_sum * diffs_sum)/i)) / (i - 1)
+            std = variance**0.5
+            std_sage.loc[i-2] = std
+            # std_sage is a (no_order - 2) x len(indices) matrix
+
+    # make confidence bands
+    lower = pd.DataFrame(columns=running_mean.columns)
+    upper = pd.DataFrame(columns=running_mean.columns)
+    for k in range(len(running_mean)):
+        # NOTE: k+3 because first 3 rows were dropped before
+        if ci_bands == "Gaussian":
+            # TODO: use t-distribution (in general: Gaussian in the limit, because every summand is a RV -> are they indep? NO)
+            # TODO: this is wrong anyways, but 'sd' is fine
+            lower.loc[k] = running_mean.loc[k] + norm.ppf(alpha/2) * (std_sage.loc[k] / np.sqrt(k + 3))
+            upper.loc[k] = running_mean.loc[k] - norm.ppf(alpha/2) * (std_sage.loc[k] / np.sqrt(k + 3))
+        elif ci_bands == "sd":
+            lower.loc[k] = running_mean.loc[k] + std_sage.loc[k]
+            upper.loc[k] = running_mean.loc[k] - std_sage.loc[k]
+
+    # if dsage, trim everything to correct length
+    # make a dict with running_means for every var (different length of running means series)
+    running_mean_dict = {}
+    lower_dict = {}
+    upper_dict = {}
+    for kk in indices:
+        # print(len([data[2:][kk] != 0]))
+        # print(len(running_mean[kk]))
+        running_mean_ = running_mean[kk]
+        boolean_index = data[2:][kk] != 0
+        boolean_index = boolean_index.reset_index(drop=True)
+        running_mean_dict[kk] = running_mean_[boolean_index].reset_index(drop=True)
+        lower_ = lower[kk]
+        upper_ = upper[kk]
+        lower_dict[kk] = lower_[boolean_index].reset_index(drop=True)
+        upper_dict[kk] = upper_[boolean_index].reset_index(drop=True)
+
+    x_axis = []
+
+    for ll in range(len(running_mean)):
+        x_axis.append(ll)
+
+    first_index = indices[0]
+    first_axis = [i for i in range(0, len(running_mean_dict[first_index] + 1))]
+    ax.plot(first_axis, running_mean_dict[first_index], linewidth=0.7)
+    for i in range(1, len(indices)):
+        next_axis = [i for i in range(0, len(running_mean_dict[indices[i]] + 1))]
+        ax.plot(next_axis, running_mean_dict[indices[i]], linewidth=0.7)
+
+    # plt.xlim(len(x_axis))
+    #for n in lower.columns:
+    #    ax.fill_between(x_axis, lower[n], upper[n], alpha=.1)
+
+    labels = data.columns
+    if legend:
+        ax.legend(loc=loc, labels=labels)
+
+    ax.fill_between(first_axis, lower_dict[first_index], upper_dict[first_index], alpha=.1)
+    for i in range(1, len(indices)):
+        next_axis = [i for i in range(0, len(running_mean_dict[indices[i]] + 1))]
+        ax.fill_between(next_axis, lower_dict[indices[i]], upper_dict[indices[i]], alpha=.1)
+
+    # TODO: times_axis does not work yet
+    if time_axis:
+        runtime = runtime
+        times = []
+        for i in range(len(running_mean)):
+            times.append(i * (runtime / len(running_mean)))
+        ax2 = ax.twinx()
+        ax2.plot(x_axis, times, alpha=0.5)
+        # ax2 = ax.twiny()
+        # ax2.plot(range(0, time_axis, int(time_axis/20)), np.ones(time_axis))
+
+    return ax, std_sage

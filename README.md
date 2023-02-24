@@ -109,7 +109,7 @@ bash sage_experiments.sh
 Now convert the results (based on intermediate results from the SAGE inference) to csl-sage/experimental results. This
 is done by setting inferred summands of the SAGE representation:
 
-(equation)
+(cf. Equation (1) (p.3 in the accompanying paper))
 
 to zero given X_j dsep Y given coalition. This is done post-hoc to the SAGE results in order to save runtime during the
 experiments but also implemented in the original rfi package to be used in practice. To this end, execute:
@@ -118,8 +118,8 @@ experiments but also implemented in the original rfi package to be used in pract
 bash sage_to_dsage.sh
 ```  
 
-The file ai_via_timing.py serves the purpose to evaluate which part of the SAGE approximation that is potentially skipped 
-when a d-separation can be found. To replicate the results, execute
+The file ai_via_timing.py serves the purpose to evaluate the part of the SAGE approximation that is potentially skipped 
+when a d-separation can be found (overall, it serves the runtime comparison). To replicate the results, execute
 
 ```
 runtime_estimation.sh
@@ -136,6 +136,9 @@ python visualization/bnlearn/runtime_and_f1.py --alg tabu
 python visualization/sage/runtime_sage.py 
 python visualization/sage/sage_values.py --model lm --degree 2 --top 5 
 python visualization/sage/deltas_boxplot.py --model lm --degree 2
+python visualization/sage/convergence_top.py --model lm --top 15
+python visualization/sage/convergence_bottom.py --bottom 15
+
 ```
 
 ## Real-world example
@@ -144,7 +147,7 @@ Successively execute the following files from real-world-experiments folder.
 
 ```
 python real-world-experiments/experiment_drug.py
-python sage_to_csl_drug.py
-sage_dsage_plot.py
-deltas_drugs.py
+python real-world-experiments/sage_to_csl_drug.py
+python real-world-experiments/sage_dsage_plot.py
+python real-world-experiments/deltas_drugs.py
 ```

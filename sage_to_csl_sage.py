@@ -1,4 +1,4 @@
-"""Convert results from SAGE Estimation to d-sage"""
+"""Convert results from SAGE Estimation to d-sage (working name was csl-sage, cf. code)"""
 
 import pandas as pd
 import networkx as nx
