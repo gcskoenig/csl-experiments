@@ -14,17 +14,13 @@ as opposed to standard SAGE estimation. For all experiments conducted using Pyth
 
 ## Replicate
 
-To replicate the study, clone this repository, so that all directories adhere the requirements of the different R and
+To replicate the study, clone the camera-ready branch from this repository, so that all directories adhere the requirements of the different R and
 Python scripts.
-
-```
-git clone [link]
-```
 
 To make use of the RFI package, clone it into this the directory of this (cloned) repository and install.
 
 ```
-git clone [link]
+git clone https://github.com/gcskoenig/rfi.git
 ```
 
 and 
