@@ -151,3 +151,11 @@ python real-world-experiments/sage_to_csl_drug.py
 python real-world-experiments/sage_dsage_plot.py
 python real-world-experiments/deltas_drugs.py
 ```
+
+## CI v d-sep
+
+Successively execute the following file with the according command line argument.
+
+```
+python ci_v_dsep.py --data "dag_s_0.2"
+```
