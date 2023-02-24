@@ -48,6 +48,7 @@ opt-einsum==3.3.0
 packaging==21.3
 pandas==1.4.3
 Pillow==9.2.0
+pingouin==0.5.2
 platformdirs==2.5.2
 prefixed==0.3.2
 prometheus-client==0.14.1
